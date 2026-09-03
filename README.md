@@ -14,6 +14,10 @@ npm install
 npm run dev          # http://127.0.0.1:5173
 ```
 
+Or play it hosted, without cloning anything:
+
+[![Deploy on InstaPods](https://instapods.com/deploy-button.svg)](https://app.instapods.com/dashboard/pods/create?repo=https://github.com/mshumer/Claude-of-Duty&ref=gh-claude-of-duty)
+
 Click the canvas to lock the cursor. WASD move, mouse aim, LMB fire, RMB ADS,
 R reload, Shift sprint, Ctrl crouch, Space jump, Q/E lean, Esc release.
 
