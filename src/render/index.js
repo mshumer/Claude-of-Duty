@@ -134,6 +134,14 @@ export class RenderSystem {
     this.rng = ctx.rng.fork();
     this.frame = 0;
 
+    // Low preset only: dynamically trade internal resolution for frame pacing.
+    // Use the engine's frame delta (not GPU timer queries, which are not
+    // consistently available in browsers). Ignore tab-switch/debugger hitches.
+    this._baseRenderScale = q.renderScale;
+    this._dynamicResolution = this.qLevel === 0 && !cfg.deterministic;
+    this._dynamicFrameMs = 16.7;
+    this._dynamicScaleFrames = 0;
+
     // ---- renderer -------------------------------------------------------
     const renderer = new THREE.WebGLRenderer({
       canvas: ctx.canvas,
@@ -866,7 +874,9 @@ export class RenderSystem {
   // ==========================================================================
 
   resize(w, h, ctx) {
-    const pr = Math.min(globalThis.devicePixelRatio || 1, 1.5);
+    // UHD 770 is bandwidth-limited: avoid rendering a high-DPI backbuffer
+    // in the integrated-GPU preset. Higher quality presets retain capped HiDPI.
+    const pr = Math.min(globalThis.devicePixelRatio || 1, this.qLevel === 0 ? 1 : 1.5);
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false);
 
@@ -1268,6 +1278,33 @@ export class RenderSystem {
     const renderer = this.renderer;
     const { scene, camera, viewScene, viewCamera } = ctx;
     const dt = Math.min(0.1, Math.max(1 / 480, ctx.time.dt || 1 / 60));
+
+    if (this._dynamicResolution) {
+      // Only react to plausible gameplay frame times. A long pause caused by
+      // tab switching or devtools should not permanently lower image quality.
+      const frameMs = dt * 1000;
+      if (frameMs >= 4 && frameMs <= 80) {
+        this._dynamicFrameMs += (frameMs - this._dynamicFrameMs) * 0.08;
+      }
+      if (++this._dynamicScaleFrames >= 45) {
+        this._dynamicScaleFrames = 0;
+        const current = this.q.renderScale;
+        let next = current;
+        if (this._dynamicFrameMs > 21) next = Math.max(0.48, current - 0.04);
+        else if (this._dynamicFrameMs < 14.5) next = Math.min(this._baseRenderScale, current + 0.02);
+
+        if (Math.abs(next - current) >= 0.005) {
+          this.q.renderScale = next;
+          const canvas = this.ctx.canvas;
+          this.resize(
+            canvas.clientWidth || globalThis.innerWidth || 1280,
+            canvas.clientHeight || globalThis.innerHeight || 720,
+            this.ctx
+          );
+        }
+      }
+    }
+
     this.frame++;
     renderer.info.reset();
 

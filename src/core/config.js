@@ -19,20 +19,21 @@ export const UNITS = {
 };
 
 export const QUALITY_PRESETS = {
+  // Integrated-GPU preset: favour stable frame pacing over expensive screen-space effects.
   low: {
-    renderScale: 0.72,
-    shadowMapSize: 1024,
-    cascades: 3,
-    shadowDistance: 60,
+    renderScale: 0.62,
+    shadowMapSize: 512,
+    cascades: 2,
+    shadowDistance: 45,
     taa: false,
     gtao: false,
     ssr: false,
     volumetrics: false,
     motionBlur: false,
-    bloom: true,
-    anisotropy: 4,
-    particleBudget: 2000,
-    decalBudget: 64,
+    bloom: false,
+    anisotropy: 2,
+    particleBudget: 800,
+    decalBudget: 48,
   },
   medium: {
     renderScale: 0.85,
@@ -82,7 +83,7 @@ export const QUALITY_PRESETS = {
 };
 
 export const DEFAULTS = {
-  quality: 'ultra',
+  quality: 'low',
   fov: 80, // horizontal-ish vertical FOV, CoD default feel
   adsFovScale: 0.72,
   sensitivity: 0.0022,

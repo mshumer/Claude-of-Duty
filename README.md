@@ -84,6 +84,19 @@ Shader pre-warm (`src/core/prewarm.js`) is what removed the stalls. Making it
 `performance.now()` instead of the engine clock, since any change to boot duration
 otherwise shifted output.
 
+## Integrated-GPU mode
+
+The default low preset caps the backbuffer at device pixel ratio 1 and starts
+at 62% internal render scale. It also enables a conservative dynamic-resolution
+controller: every 45 frames it lowers internal scale when the smoothed frame
+time is above 21 ms, or cautiously restores scale below 14.5 ms, within a
+48–62% range. This controller is disabled for deterministic capture mode so
+reference screenshots remain stable. It uses frame-time feedback rather than
+GPU timer queries, so CPU-bound scenes may still need gameplay-side optimization.
+
+These are fallback settings, not a promise of 60 FPS. Validate them with
+`tools/perf.mjs` and `tools/playtest.mjs` on the target Intel UHD 770 machine.
+
 ## Honest assessment
 
 The goal was to match a modern Call of Duty. **It does not.**
